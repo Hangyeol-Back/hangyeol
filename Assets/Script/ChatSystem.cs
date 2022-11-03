@@ -48,6 +48,9 @@ public class ChatSystemCell : MonoBehaviour
 
 public class ChatSystem : MonoBehaviour
 {
+    [SerializeField]
+    private NetSystem netSystem;
+
     [SerializeField] 
     private ScrollRect scrollView;
     
@@ -107,11 +110,12 @@ public class ChatSystem : MonoBehaviour
         systemCell.Init();
         systemCell.SetText(inputField.text);
         LayoutRebuilder.ForceRebuildLayoutImmediate(scrollView.content);
+        netSystem.Send(inputField.text);
         inputField.text = "";
         isWait = true;
     }
 
-    void recevedMessage(string message)
+    public void recevedMessage(string message)
     {
         GameObject newCell = Instantiate(originCell_left, scrollView.content);
         newCell.transform.SetSiblingIndex(0);
@@ -121,5 +125,6 @@ public class ChatSystem : MonoBehaviour
         systemCell.Init();
         systemCell.SetText(message);
         LayoutRebuilder.ForceRebuildLayoutImmediate(scrollView.content);
+        isWait = false;
     }
 }

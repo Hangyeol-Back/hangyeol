@@ -25,12 +25,15 @@ class NetSystem : MonoBehaviour
         //출처: https://nowonbun.tistory.com/670 [명월 일지:티스토리]
     }
 
+    [SerializeField]
+    private ChatSystem chatSystem;
+
     string result = "";
     private void Update()
     {
         if (result != "")
         {
-            
+            chatSystem.recevedMessage(result);
             result = "";
         }
     }
