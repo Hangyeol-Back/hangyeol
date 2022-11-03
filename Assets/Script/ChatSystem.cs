@@ -79,13 +79,11 @@ public class ChatSystem : MonoBehaviour
         SetChild();
     }
 
-    bool isWait = false;
+    public static bool isWait = false;
     float opacityValue = 360f;
 
     void Update()
     {
-
-
         btnSend.interactable = !isWait;
         originCell_wait.SetActive(isWait);
         if(isWait)
@@ -110,6 +108,7 @@ public class ChatSystem : MonoBehaviour
         systemCell.SetText(inputField.text);
         LayoutRebuilder.ForceRebuildLayoutImmediate(scrollView.content);
         inputField.text = "";
+        isWait = true;
     }
 
     void recevedMessage(string message)
