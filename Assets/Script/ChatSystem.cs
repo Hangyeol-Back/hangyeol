@@ -70,12 +70,15 @@ public class ChatSystem : MonoBehaviour
     private GameObject originCell_wait;
 
     [SerializeField]
+    private GameObject originCell_btns;
+
+    [SerializeField]
     private List<Image> waitDecoList = new List<Image>();
  
     protected void SetChild()
     {
         btnSend.onClick.RemoveAllListeners();
-        btnSend.onClick.AddListener(delegate { OnClickSend(); });
+        btnSend.onClick.AddListener(delegate { OnClickSend(inputField.text); });
     }
 
     private void Start(){
@@ -100,7 +103,7 @@ public class ChatSystem : MonoBehaviour
         }
     }
 
-    void OnClickSend()
+    void OnClickSend(string text)
     {
         GameObject newCell = Instantiate(originCell_right, scrollView.content);
         newCell.transform.SetSiblingIndex(0);
@@ -108,23 +111,54 @@ public class ChatSystem : MonoBehaviour
 
         var systemCell = newCell.AddComponent<ChatSystemCell>();
         systemCell.Init();
-        systemCell.SetText(inputField.text);
+        systemCell.SetText(text);
         LayoutRebuilder.ForceRebuildLayoutImmediate(scrollView.content);
-        netSystem.Send(inputField.text);
+        netSystem.Send(text);
         inputField.text = "";
         isWait = true;
     }
 
     public void recevedMessage(string message)
     {
-        GameObject newCell = Instantiate(originCell_left, scrollView.content);
+        if(message == string.Empty || message.Length <= 0)
+        {
+            isWait = false;
+            return;
+        }
+
+        char c = message[0];
+        if(c != '@')
+        {
+            GameObject newCell = Instantiate(originCell_left, scrollView.content);
+            newCell.transform.SetSiblingIndex(0);
+            newCell.SetActive(true);
+
+            var systemCell = newCell.AddComponent<ChatSystemCell>();
+            systemCell.Init();
+            systemCell.SetText(message);
+            LayoutRebuilder.ForceRebuildLayoutImmediate(scrollView.content);
+            isWait = false;
+        }
+        else
+            recevedSelectAbleMessage(message);
+    }
+
+    public void recevedSelectAbleMessage(string message)
+    {
+        string[] split = message.Split(',');
+        GameObject newCell = Instantiate(originCell_btns, scrollView.content);
         newCell.transform.SetSiblingIndex(0);
         newCell.SetActive(true);
 
-        var systemCell = newCell.AddComponent<ChatSystemCell>();
-        systemCell.Init();
-        systemCell.SetText(message);
-        LayoutRebuilder.ForceRebuildLayoutImmediate(scrollView.content);
-        isWait = false;
+        for(int i = 0; i < split.Length; i++)
+        {
+            string str = split[i];
+            GameObject eachCell = newCell.transform.Find("contents").GetChild(i).gameObject;
+            eachCell.SetActive(true);
+            eachCell.GetComponentInChildren<Text>().text = str;
+            eachCell.GetComponent<Button>().onClick.RemoveAllListeners();
+            eachCell.GetComponent<Button>().onClick.AddListener(delegate { OnClickSend(str); });
+        }
+
     }
 }
