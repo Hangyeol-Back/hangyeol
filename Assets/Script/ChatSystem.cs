@@ -86,6 +86,7 @@ public class ChatSystem : MonoBehaviour
     }
 
     public static bool isWait = false;
+    public static string receivedText = "";
     float opacityValue = 360f;
 
     void Update()
@@ -101,6 +102,11 @@ public class ChatSystem : MonoBehaviour
             if(opacityValue < 0f)
                 opacityValue = 360f;
         }
+        else if(receivedText != "")
+        {
+            recevedMessage(receivedText);
+            receivedText = "";
+        }
     }
 
     void OnClickSend(string text)
@@ -111,11 +117,50 @@ public class ChatSystem : MonoBehaviour
 
         var systemCell = newCell.AddComponent<ChatSystemCell>();
         systemCell.Init();
-        systemCell.SetText(text);
         LayoutRebuilder.ForceRebuildLayoutImmediate(scrollView.content);
-        netSystem.Send(text);
+        Send(text);
+        systemCell.SetText(inputField.text);
+        //netSystem.Send(text);
         inputField.text = "";
         isWait = true;
+    }
+
+    void Send(string msg)
+    {
+        char flag = ' ';
+        if(msg.Length > 0)
+        {
+            flag = msg[0];
+
+            inputField.text = inputField.text.Substring(1, inputField.text.Length - 1);
+        }
+            
+        switch(flag)
+        {
+            case '0':
+            {
+                NLP_TextGenA_Controller nlp = GameObject.FindObjectOfType<NLP_TextGenA_Controller>();
+                nlp.OnClick_SendtextGenARequest();
+                break;
+            }   
+            case '1':
+            {
+                NLP_Doc2Vec_Controller nlp = GameObject.FindObjectOfType<NLP_Doc2Vec_Controller>();
+                nlp.OnClick_SendDoc2VecRequest();
+                break;
+            }
+            case '2':
+            {
+                NLP_Word2Vec_Controller nlp = GameObject.FindObjectOfType<NLP_Word2Vec_Controller>();
+                nlp.OnClick_SendWord2VecRequest();
+                break;
+            }
+            case ' ':
+            {
+                netSystem.Send(msg);
+                break;
+            }
+        }
     }
 
     public void recevedMessage(string message)
@@ -141,6 +186,7 @@ public class ChatSystem : MonoBehaviour
         }
         else
             recevedSelectAbleMessage(message);
+        receivedText = "";
     }
 
     public void recevedSelectAbleMessage(string message)
@@ -159,6 +205,7 @@ public class ChatSystem : MonoBehaviour
             eachCell.GetComponent<Button>().onClick.RemoveAllListeners();
             eachCell.GetComponent<Button>().onClick.AddListener(delegate { OnClickSend(str); });
         }
+        isWait =false;
 
     }
 }
